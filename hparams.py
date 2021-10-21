@@ -21,7 +21,7 @@ batch_size = 128
 lr = 1e-3
 epochs = 2000
 beta = 0.005
-lat_dis_lambda = 1
+lat_dis_lambda = 0.005
 
 # test config
 valid_file_num = 32
