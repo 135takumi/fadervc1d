@@ -75,21 +75,29 @@ class DecoderBlock(nn.Module):
         if upsample_rate > 1:
             self.up = nn.Upsample(scale_factor=upsample_rate, mode='linear', align_corners=True)
 
+        self.is_linear = in_channels != 256
+        if in_channels != 256:
+            self.fc1 = nn.Linear(256, in_channels)
+
+
         self.conv = nn.Conv1d(in_channels,
                               out_channels,
                               kernel_size=kernel_size,
                               stride=stride,
                               padding=padding,
                               bias=False)
-        self.cbn = ConditionalBatchNorm1d(out_channels, n_speaker)
+        #self.cbn = ConditionalBatchNorm1d(out_channels, n_speaker)
         self.relu = nn.ReLU()
 
     def forward(self, x, y):
         if self.is_up:
             x = self.up(x)
+        if self.is_linear:
+            y = self.fc1(y)
 
+        x = x + y.unsqueeze(-1).expand(x.size())
         x = self.conv(x)
-        x = self.cbn(x, y)
+        #x = self.cbn(x, y)
         x = self.relu(x)
 
         return x
@@ -108,11 +116,14 @@ class Decoder(nn.Module):
             DecoderBlock(32, 32, 3, 1, 1, n_speaker, 2),
         ])
 
+        self.embedding  = nn.Embedding(n_speaker, 256)
+
         self.out_conv = nn.Conv1d(32, out_channels, 5, 1, 2)
 
     def forward(self, x, label):
+        y = self.embedding(label)
         for block in self.blocks:
-            x = block(x, label)
+            x = block(x, y)
 
         x = self.out_conv(x)
 
@@ -126,13 +137,13 @@ class LatentDiscriminator(nn.Module):
         self.model = nn.Sequential(
             nn.Flatten(),
             nn.Linear(2048, 512),
-            #nn.BatchNorm1d(512),
+            nn.BatchNorm1d(512),
             nn.ReLU(),
             nn.Linear(512, 128),
-            #nn.BatchNorm1d(128),
+            nn.BatchNorm1d(128),
             nn.ReLU(),
             nn.Linear(128, 32),
-            #nn.BatchNorm1d(32),
+            nn.BatchNorm1d(32),
             nn.ReLU(),
             nn.Linear(32, n_speaker)
         )
