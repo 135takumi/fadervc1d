@@ -5,6 +5,7 @@ import torch
 
 # data_root
 data_root = Path('/mnt/d/brood/M1/projects/vae-vc/sessions')
+data_root = Path('/home/isako/M1/projects/fadervc1d')
 
 # exp_name
 exp_name = 'test'
