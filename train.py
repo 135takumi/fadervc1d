@@ -55,9 +55,6 @@ def train(model, optimizer, train_loader, writer, epoch, debug):
     counter = 1
 
     for x_t, label in train_loader:
-        if counter >= 3 and debug == True:
-            break
-
         x_t, label = x_t.to(hparams.device), label.to(hparams.device)
 
         x_recon_t, z, mean, logvar = model(x_t, label)
@@ -185,11 +182,11 @@ def main():
         train(model, optimizer, train_loader, writer, epoch, args.debug)
         valid(model, valid_loader, writer, epoch, args.debug)
 
-        if epoch % hparams.save_interval == 0:
-            save_path = save_dir / f"VAEVC-{epoch:03}.pth"
-            save_checkpoint(save_path, model, optimizer, epoch)
-        elif epoch == hparams.epochs:
+        if epoch == hparams.epochs:
             save_path = save_dir / "VAEVC-latest.pth"
+            save_checkpoint(save_path, model, optimizer, epoch)
+        elif epoch % hparams.save_interval == 0:
+            save_path = save_dir / f"VAEVC-{epoch:03}.pth"
             save_checkpoint(save_path, model, optimizer, epoch)
 
 
