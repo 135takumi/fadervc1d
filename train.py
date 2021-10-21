@@ -89,10 +89,10 @@ def train(model, optimizer, train_loader, writer, epoch, debug):
             break
 
     denominator = len(train_loader)
-    writer.add_scalar("loss/model", running_loss / denominator, epoch)
-    writer.add_scalar("loss/reconstract", running_loss_rec / denominator, epoch)
-    writer.add_scalar("loss/kl", running_loss_kl / denominator, epoch)
-    writer.add_scalar("loss/ce", running_loss_kl / denominator, epoch)
+    writer.add_scalar("train/model", running_loss / denominator, epoch)
+    writer.add_scalar("train/reconstract", running_loss_rec / denominator, epoch)
+    writer.add_scalar("train/kl", running_loss_kl / denominator, epoch)
+    writer.add_scalar("train/ce", running_loss_ce / denominator, epoch)
 
 
 def valid(model, valid_loader, writer, epoch, debug):
@@ -127,10 +127,10 @@ def valid(model, valid_loader, writer, epoch, debug):
                 break
 
     denominator = len(valid_loader)
-    writer.add_scalar("loss/model", running_loss / denominator, epoch)
-    writer.add_scalar("loss/reconstract", running_loss_rec / denominator, epoch)
-    writer.add_scalar("loss/kl", running_loss_kl / denominator, epoch)
-    writer.add_scalar("loss/ce", running_loss_kl / denominator, epoch)
+    writer.add_scalar("valid/model", running_loss / denominator, epoch)
+    writer.add_scalar("valid/reconstract", running_loss_rec / denominator, epoch)
+    writer.add_scalar("valid/kl", running_loss_kl / denominator, epoch)
+    writer.add_scalar("valid/ce", running_loss_ce / denominator, epoch)
 
 
 def main():
