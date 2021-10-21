@@ -75,7 +75,7 @@ def train(model, optimizer, train_loader, writer, epoch, debug):
         total_iter = (epoch-1)*len(train_loader) + counter
         ce_loss = F.cross_entropy(discriminator_result, label)
         ce_lambda = get_lambda(hparams.lat_dis_lambda, total_iter, hparams.lambda_schedule)
-        loss = reconstract_loss + hparams.beta * kl_loss + ce_lambda * ce_loss
+        loss = reconstract_loss + hparams.beta * kl_loss - ce_lambda * ce_loss
 
         optimizer.zero_grad()
         loss.backward()
@@ -117,7 +117,7 @@ def valid(model, valid_loader, writer, epoch, debug):
             reconstract_loss = F.mse_loss(x_recon_t, x_t)
             kl_loss = kl_div(mean, logvar)
             ce_loss = F.cross_entropy(discriminator_result, label)
-            loss = reconstract_loss + hparams.beta * kl_loss + ce_loss
+            loss = reconstract_loss + hparams.beta * kl_loss - hparams.lat_dis_lambda * ce_loss
 
             running_loss += loss.item()
             running_loss_rec += reconstract_loss.item()
