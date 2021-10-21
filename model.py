@@ -126,13 +126,13 @@ class LatentDiscriminator(nn.Module):
         self.model = nn.Sequential(
             nn.Flatten(),
             nn.Linear(2048, 512),
-            nn.BatchNorm1d(512),
+            #nn.BatchNorm1d(512),
             nn.ReLU(),
             nn.Linear(512, 128),
-            nn.BatchNorm1d(128),
+            #nn.BatchNorm1d(128),
             nn.ReLU(),
             nn.Linear(128, 32),
-            nn.BatchNorm1d(32),
+            #nn.BatchNorm1d(32),
             nn.ReLU(),
             nn.Linear(32, n_speaker)
         )
