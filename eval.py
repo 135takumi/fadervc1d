@@ -8,7 +8,7 @@ import torch
 from tqdm import tqdm
 
 import hparams
-from model import VAE
+from model import FaderVC1D
 from utils import (save_wav, speech_synthesis, world_decompose, world_encode_spectral_envelop)
 
 
@@ -66,11 +66,12 @@ def convert(wav_path, save_path, source, target, speaker_dict, f0_dict, mcep_dic
         x = torch.from_numpy(mcep_normalized).float().unsqueeze(0).to(device)
         label = torch.from_numpy(np.array(target_label)).long().unsqueeze(0).to(device)
 
-        x, _, _, _ = model(x, label)
-        x = x.squeeze().cpu().numpy()
+        z, _, _ = model.encode(x, label)
+        converted_x = model.decode(z, label)
+        converted_x = converted_x.squeeze().cpu().numpy()
 
     # ターゲット話者の平均分散を使って正規化から戻す
-    mcep_converted = mcep_denormalize(x.T, target, mcep_dict)
+    mcep_converted = mcep_denormalize(converted_x.T, target, mcep_dict)
 
     # 16の整数のフレーム長になるようpadしたのを削除
     mcep_converted = mcep_converted[:-pad, :]
@@ -115,7 +116,7 @@ def main():
 
     test_files = files_to_list(hparams.data_root / "test_files.txt")
 
-    model = VAE(hparams.mcep_channels, hparams.speaker_num).to(device)
+    model = FaderVC1D(hparams.mcep_channels, hparams.speaker_num).to(device)
     model.load_state_dict(torch.load(hparams.data_root / "model_pth" / args.exp_name / args.weight,
                                      map_location=device)['model'])
 

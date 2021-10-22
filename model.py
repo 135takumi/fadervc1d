@@ -161,9 +161,9 @@ class VAE(nn.Module):
 
         self.encoder = Encoder(mcep_channels)
         self.decoder = Decoder(mcep_channels, n_speaker)
-        self.latentdiscriminator = LatentDiscriminator(n_speaker)
+        self.lat_dis = LatentDiscriminator(n_speaker)
 
-    def forward(self, x, label):
+    def encode(self, x, label):
         mean, logvar = self.encoder(x)
 
         # reparameterization trick
@@ -171,12 +171,33 @@ class VAE(nn.Module):
         eps = torch.randn_like(std)
         z = mean + eps * std
 
+
+        return z, mean, logvar
+
+    def decode(self, z, label):
         generated_mel = self.decoder(z, label)
 
-        return generated_mel, z, mean, logvar
+        return generated_mel
+
+
+class FaderVC1D(nn.Module):
+    def __init__(self, mcep_channels, n_speaker):
+        super().__init__()
+
+        self.vae = VAE(mcep_channels, n_speaker)
+        self.lat_dis = LatentDiscriminator(n_speaker)
+
+    def encode(self, x, label):
+        z, mean, logvar = self.vae.encode(x, label)
+
+        return z, mean, logvar
+
+    def decode(self, z, label):
+        generated_mel = self.vae.decode(z, label)
+
+        return generated_mel
 
     def discriminate(self, z):
-        discriminator_result = self.latentdiscriminator(z)
+        lat_dis_result = self.lat_dis(z)
 
-        return discriminator_result
-
+        return lat_dis_result
