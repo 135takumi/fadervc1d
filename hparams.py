@@ -4,7 +4,8 @@ import torch
 
 
 # data_root
-data_root = Path('/mnt/d/brood/M1/projects/vae-vc/sessions')
+#data_root = Path('/mnt/d/brood/M1/projects/vae-vc/sessions')
+data_root = Path('/home/isako/M1/projects/fadervc1d/sessions')
 
 # exp_name
 exp_name = 'test'
@@ -18,7 +19,7 @@ speaker_num = 4
 # train config
 batch_size = 128
 lr = 1e-3
-epochs = 2000
+epochs = 6000
 beta = 0.005
 lat_dis_lambda = 1
 
