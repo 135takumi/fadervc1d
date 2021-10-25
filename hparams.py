@@ -8,7 +8,7 @@ import torch
 data_root = Path('/home/isako/M1/projects/fadervc1d/sessions')
 
 # exp_name
-exp_name = 'test'
+exp_name = 'lat_dis_change'
 
 # feature config
 sampling_rate = 24000
