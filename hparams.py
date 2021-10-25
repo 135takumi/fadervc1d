@@ -4,8 +4,8 @@ import torch
 
 
 # data_root
-data_root = Path('/mnt/d/brood/M1/projects/vae-vc/sessions')
-#data_root = Path('/home/isako/M1/projects/fadervc1d/sessions')
+#data_root = Path('/mnt/d/brood/M1/projects/vae-vc/sessions')
+data_root = Path('/home/isako/M1/projects/fadervc1d/sessions')
 
 # exp_name
 exp_name = 'test'
@@ -31,7 +31,7 @@ test_file_num = 20
 save_interval = 250
 
 # debug mode
-debug = True
+debug = False
 
 # cuda device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
