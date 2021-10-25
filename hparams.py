@@ -20,8 +20,8 @@ speaker_num = 4
 batch_size = 128
 lr = 1e-3
 epochs = 6000
-beta = 0.05
-lat_dis_lambda = 0.05
+beta = 0.005
+lat_dis_lambda = 1
 
 # test config
 valid_file_num = 32
@@ -31,7 +31,7 @@ test_file_num = 20
 save_interval = 250
 
 # debug mode
-debug = False
+debug = True
 
 # cuda device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

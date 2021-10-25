@@ -58,7 +58,6 @@ def train(model, vae_optimizer, lat_dis_optimizer, train_loader, writer, epoch, 
         x_t, label = x_t.to(hparams.device), label.to(hparams.device)
 
         # lat_disの学習
-        #with torch.no_grad():
         with torch.no_grad():
             z, _, _ = model.encode(x_t, label)
 
