@@ -118,7 +118,12 @@ def main():
 
     # 学習用とテスト用ファイルに分割
     random.shuffle(files)
-    train_files = files[:-hparams.test_file_num]
+    train_files = files[:-(hparams.valid_file_num +
+                           hparams.test_file_num)]
+
+    valid_files = files[-(hparams.valid_file_num +
+                          hparams.test_file_num):
+                        -hparams.test_file_num]
     test_files = files[-hparams.test_file_num:]
 
     with open(hparams.data_root / "f0_statistics.json", 'w') as f:
@@ -132,6 +137,9 @@ def main():
 
     with open(hparams.data_root / "train_files.txt", mode='w') as f:
         f.write('\n'.join(train_files))
+
+    with open(hparams.data_root / "valid_files.txt", mode='w') as f:
+        f.write('\n'.join(valid_files))
 
     with open(hparams.data_root / "test_files.txt", mode='w') as f:
         f.write('\n'.join(test_files))

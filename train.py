@@ -71,9 +71,6 @@ def train(model, vae_optimizer, lat_dis_optimizer, train_loader, writer, epoch, 
         #  損失関数
         # reconstruction loss: 対数尤度の最大化
         # Gaussianの対数尤度の最大化 = MSE
-        #z, mean, logvar = model.encode(x_t, label)
-        #discriminator_result = model.discriminate(z)
-
         z, mean, logvar = model.encode(x_t, label)
         x_recon_t = model.decode(z, label)
 
@@ -127,9 +124,9 @@ def valid(model, valid_loader, writer, epoch, debug):
         for x_t, label in valid_loader:
             x_t, label = x_t.to(hparams.device), label.to(hparams.device)
 
-            z, mean, logvar      = model.encode(x_t, label)
+            z, mean, logvar = model.encode(x_t, label)
             discriminator_result = model.discriminate(z)
-            x_recon_t            = model.decode(z, label)
+            x_recon_t = model.decode(z, label)
 
 
             reconstract_loss = F.mse_loss(x_recon_t, x_t)
@@ -178,9 +175,8 @@ def main():
     with open(hparams.data_root / "mcep_statistics.json", 'r') as f:
         mcep_dict = json.load(f)
 
-    all_files = files_to_list(hparams.data_root / "train_files.txt")
-    train_files = all_files[:-hparams.valid_file_num]
-    valid_files = all_files[-hparams.valid_file_num:]
+    train_files = files_to_list(hparams.data_root / "train_files.txt")
+    valid_files = files_to_list(hparams.data_root / "valid_files.txt")
 
     # Create data loaders
     train_data = AudioDataset(hparams.data_root,
