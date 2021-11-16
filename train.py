@@ -45,7 +45,8 @@ def get_lambda(lat_dis_lambda, n_iter, lambda_schedule):
         return lat_dis_lambda * float(min(n_iter, lambda_schedule)) / lambda_schedule
 
 
-def train(model, vae_optimizer, lat_dis_optimizer, train_loader, writer, epoch, debug):
+def train(model, vae_optimizer, lat_dis_optimizer, vae_train_loader, ld_train_loader,
+          writer, epoch, debug):
     model.train()
 
     running_loss = 0
@@ -54,15 +55,16 @@ def train(model, vae_optimizer, lat_dis_optimizer, train_loader, writer, epoch, 
     running_loss_ce = 0
     counter = 1
 
-    for x_t, label in train_loader:
-        x_t, label = x_t.to(hparams.device), label.to(hparams.device)
+    for (vae_x_t, vae_label), (ld_x_t, ld_label) in zip(vae_train_loader, ld_train_loader):
+        vae_x_t, vae_label = vae_x_t.to(hparams.device), vae_label.to(hparams.device)
+        ld_x_t, ld_label = ld_x_t.to(hparams.device), ld_label.to(hparams.device)
 
         # lat_disの学習
         with torch.no_grad():
-            z, _, _ = model.encode(x_t, label)
+            z, _, _ = model.encode(ld_x_t, ld_label)
 
         discriminator_result = model.discriminate(z)
-        lat_dis_loss = F.cross_entropy(discriminator_result, label)
+        lat_dis_loss = F.cross_entropy(discriminator_result, ld_label)
 
         lat_dis_optimizer.zero_grad()
         lat_dis_loss.backward()
@@ -71,20 +73,20 @@ def train(model, vae_optimizer, lat_dis_optimizer, train_loader, writer, epoch, 
         #  損失関数
         # reconstruction loss: 対数尤度の最大化
         # Gaussianの対数尤度の最大化 = MSE
-        z, mean, logvar = model.encode(x_t, label)
-        x_recon_t = model.decode(z, label)
+        z, mean, logvar = model.encode(vae_x_t, vae_label)
+        x_recon_t = model.decode(z, vae_label)
 
         with torch.no_grad():
             discriminator_result = model.discriminate(z)
 
-        reconstract_loss = F.mse_loss(x_recon_t, x_t)
+        reconstract_loss = 0.5 * F.mse_loss(x_recon_t, vae_x_t)
 
         # kl loss: klダイバージェンスの最小化
         kl_loss = kl_div(mean, logvar)
 
         # CELoss
-        total_iter = (epoch - 1) * len(train_loader) + counter
-        ce_loss = F.cross_entropy(discriminator_result, label)
+        total_iter = (epoch - 1) * len(vae_train_loader) + counter
+        ce_loss = F.cross_entropy(discriminator_result, vae_label)
         ce_lambda = get_lambda(hparams.lat_dis_lambda, total_iter, hparams.lambda_schedule)
 
         # VAEのloss
@@ -104,7 +106,7 @@ def train(model, vae_optimizer, lat_dis_optimizer, train_loader, writer, epoch, 
         if counter > 3 and debug == True:
             break
 
-    denominator = len(train_loader)
+    denominator = len(vae_train_loader)
     writer.add_scalar("train/model", running_loss / denominator, epoch)
     writer.add_scalar("train/reconstract", running_loss_rec / denominator, epoch)
     writer.add_scalar("train/kl", running_loss_kl / denominator, epoch)
@@ -129,7 +131,7 @@ def valid(model, valid_loader, writer, epoch, debug):
             x_recon_t = model.decode(z, label)
 
 
-            reconstract_loss = F.mse_loss(x_recon_t, x_t)
+            reconstract_loss = 0.5 * F.mse_loss(x_recon_t, x_t)
             kl_loss = kl_div(mean, logvar)
             ce_loss = F.cross_entropy(discriminator_result, label)
             loss = reconstract_loss + hparams.beta * kl_loss - hparams.lat_dis_lambda * ce_loss
@@ -190,7 +192,8 @@ def main():
                               valid_files,
                               seq_len=hparams.seq_len)
 
-    train_loader = DataLoader(train_data, batch_size=hparams.batch_size, num_workers=4)
+    vae_train_loader = DataLoader(train_data, batch_size=hparams.batch_size, num_workers=4, shuffle=True)
+    ld_train_loader = DataLoader(train_data, batch_size=hparams.batch_size, num_workers=4, shuffle=True)
     valid_loader = DataLoader(valid_data, batch_size=hparams.batch_size, num_workers=4)
 
     # model保存用ディレクトリ作成
@@ -198,7 +201,8 @@ def main():
     os.makedirs(save_dir, exist_ok=True)
 
     for epoch in tqdm(range(1, hparams.epochs + 1)):
-        train(model, vae_optimizer, lat_dis_optimizer, train_loader, writer, epoch, args.debug)
+        train(model, vae_optimizer, lat_dis_optimizer, vae_train_loader, ld_train_loader, writer,
+              epoch, args.debug)
         valid(model, valid_loader, writer, epoch, args.debug)
 
         if epoch == hparams.epochs:
