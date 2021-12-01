@@ -82,6 +82,8 @@ def main():
     f0_dict = {}
     mcep_dict = {}
     files = []
+    f0s = []
+    mceps = []
     for speaker_index, speaker in enumerate(tqdm(sorted(os.listdir(wav_dir)))):
         speaker_dir = wav_dir / speaker
         if not os.path.isdir(speaker_dir):
@@ -90,8 +92,6 @@ def main():
         speaker_dict[speaker] = speaker_index
 
         # f0とmcepから話者ごとに平均・分散を求める
-        f0s = []
-        mceps = []
         for wav_file in os.listdir(speaker_dir):
             if not wav_file.endswith(".wav"):
                 continue
@@ -111,9 +111,10 @@ def main():
                 mceps.append(mcep)
                 files.append(file_id)
 
-        f0_mean, f0_std = pitch_statistics(f0s)
+    f0_mean, f0_std = pitch_statistics(f0s)
+    mcep_mean, mcep_std = mcep_statistics(mceps)
+    for speaker in sorted(os.listdir(wav_dir)):
         f0_dict[speaker] = {'mean': f0_mean, 'std': f0_std}
-        mcep_mean, mcep_std = mcep_statistics(mceps)
         mcep_dict[speaker] = {'mean': mcep_mean, 'std': mcep_std}
 
     # 学習用とテスト用ファイルに分割
